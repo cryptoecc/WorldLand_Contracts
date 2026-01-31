@@ -1,0 +1,10 @@
+node_modules/
+artifacts/
+cache/
+scripts/
+test/
+package-lock.json
+package.json
+checkbalance.js
+hardhat.config.js
+/contracts
