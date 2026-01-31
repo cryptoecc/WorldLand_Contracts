@@ -97,6 +97,10 @@ contract RevocableStairVestingFlattened is Context, Ownable {
             revert InvalidStepConfiguration(stepDuration, numberOfSteps, durationSeconds);
         }
 
+        if (stepDuration == 0) {
+            revert InvalidStepConfiguration(stepDuration, numberOfSteps, durationSeconds);
+        }
+
         if (cliffSeconds + (stepDuration * numberOfSteps) > durationSeconds) {
             revert InvalidStepConfiguration(stepDuration, numberOfSteps, durationSeconds);
         }
