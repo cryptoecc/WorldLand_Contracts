@@ -23,6 +23,9 @@ contract RevocableStairVesting is VestingWalletStair {
     address private immutable _revoker;
     address private immutable _treasury;
 
+    uint256 private _ethRevocationTimestamp;
+    mapping(address => uint256) private _revocationTimestamps;
+
     uint256 private _returned;
     mapping(address => uint256) private _erc20Returned;
 
@@ -100,6 +103,11 @@ contract RevocableStairVesting is VestingWalletStair {
      * Revoked amount is tracked to prevent it from vesting in the future.
      */
     function revoke() public onlyRevoker {
+
+        if (_ethRevocationTimestamp == 0) {
+          _ethRevocationTimestamp = block.timestamp;
+        }
+
         uint256 balance = address(this).balance;
         uint256 returnable = balance - releasable();
         Address.sendValue(payable(_treasury), returnable);
@@ -117,6 +125,11 @@ contract RevocableStairVesting is VestingWalletStair {
      * Revoked amount is tracked to prevent it from vesting in the future.
      */
     function revoke(address token) public onlyRevoker {
+
+        if (_revocationTimestamps[token] == 0) {
+          _revocationTimestamps[token] = block.timestamp;
+        }
+
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 returnable = balance - releasable(token);
         SafeERC20.safeTransfer(IERC20(token), _treasury, returnable);
@@ -130,7 +143,16 @@ contract RevocableStairVesting is VestingWalletStair {
      * but beneficiary can only claim what wasn't revoked.
      */
     function vestedAmount(uint64 timestamp) public view override returns (uint256) {
-        return _vestingSchedule(address(this).balance + super.released() + _returned, timestamp);
+        
+        uint256 totalAllocation = address(this).balance + released() + _returned;
+            
+        // If revoked, cap the vesting time at the moment of revocation
+        uint64 timeCap = timestamp;
+        if (_ethRevocationTimestamp != 0 && _ethRevocationTimestamp < timestamp) {
+            timeCap = uint64(_ethRevocationTimestamp);
+        }
+        
+        return _vestingSchedule(totalAllocation, timeCap);
     }
 
     /**
@@ -139,10 +161,15 @@ contract RevocableStairVesting is VestingWalletStair {
      * but beneficiary can only claim what wasn't revoked.
      */
     function vestedAmount(address token, uint64 timestamp) public view override returns (uint256) {
-        return _vestingSchedule(
-            IERC20(token).balanceOf(address(this)) + super.released(token) + _erc20Returned[token],
-            timestamp
-        );
+
+        uint256 totalAllocation = IERC20(token).balanceOf(address(this)) + super.released(token) + _erc20Returned[token];
+
+        uint64 timeCap = timestamp;
+        if (_revocationTimestamps[token] != 0 && _revocationTimestamps[token] < timestamp) {
+            timeCap = uint64(_revocationTimestamps[token]);
+        }
+
+        return _vestingSchedule(totalAllocation, timeCap);
     }
 
     /**
