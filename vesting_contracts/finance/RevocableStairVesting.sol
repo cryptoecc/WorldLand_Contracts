@@ -47,8 +47,9 @@ contract RevocableStairVesting is VestingWalletStair {
      * @param numberOfSteps Total number of steps (e.g., 10 steps means 10% per step)
      *
      * Requirements:
-     * - stepDuration * numberOfSteps must be <= durationSeconds
+     * - cliffSeconds + (stepDuration * numberOfSteps) must be <= durationSeconds
      * - numberOfSteps must be > 0
+     * - stepDuration must be > 0
      *
      * Note: The beneficiary is the owner and can release vested tokens.
      * Only the revoker can revoke unvested tokens (sent to treasury).

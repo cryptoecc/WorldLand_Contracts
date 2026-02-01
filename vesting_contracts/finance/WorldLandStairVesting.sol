@@ -20,7 +20,7 @@ import {VestingWallet} from "./VestingWallet.sol";
  *
  * Each beneficiary gets their own vesting contract instance.
  */
-contract WorldLandVesting is VestingWalletStair {
+contract WorldLandStairVesting is VestingWalletStair {
     /**
      * @dev Creates a cliff + stair vesting wallet.
      *

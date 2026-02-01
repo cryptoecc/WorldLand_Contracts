@@ -39,6 +39,7 @@ abstract contract VestingWalletStair is VestingWallet {
      * - cliffSeconds must be <= total vesting duration
      * - cliffSeconds + (stepDuration * numberOfSteps) must be <= total vesting duration
      * - numberOfSteps must be > 0
+     * - stepDuration must be > 0
      *
      * Example: 1 year cliff + 4 quarterly steps
      * - cliffSeconds: 31536000 (1 year)
@@ -54,6 +55,10 @@ abstract contract VestingWalletStair is VestingWallet {
         }
 
         if (numberOfSteps == 0) {
+            revert InvalidStepConfiguration(stepDuration, numberOfSteps, durationSec);
+        }
+
+        if (stepDuration == 0) {
             revert InvalidStepConfiguration(stepDuration, numberOfSteps, durationSec);
         }
 
