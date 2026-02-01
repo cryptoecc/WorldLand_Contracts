@@ -1,150 +1,75 @@
 # WorldLand Contracts
 
-Smart contracts for WorldLand token ecosystem.
+## Overview
 
-## Contracts for Audit
-
-### 1. Token Contract
-
-| Item | Value |
-|------|-------|
-| **File** | `token_contracts/contracts/MyToken.sol` |
-| **Contract Name** | `WorldLandNativeToken` |
-| **Symbol** | WL |
-| **Total Supply** | 1,000,000,000 (1 Billion) |
-| **Decimals** | 18 |
-| **Solidity Version** | ^0.8.27 |
-| **Dependencies** | OpenZeppelin Contracts v5.4.0 |
-
-### 2. Vesting Contracts
-
-| Item | Value |
-|------|-------|
-| **Base Contract** | `vesting_contracts/finance/VestingWallet.sol` |
-| **Cliff Extension** | `vesting_contracts/finance/VestingWalletCliff.sol` |
-| **Solidity Version** | ^0.8.20 |
-| **Dependencies** | OpenZeppelin Contracts v5.5.0 / v5.1.0 |
+| Network | Solidity | Framework |
+|---------|----------|-----------|
+| BSC (BNB Smart Chain) | ^0.8.20 / ^0.8.27 | OpenZeppelin v5.x |
 
 ---
 
-## Project Structure
+## 1. Token Contract
 
-```
-WorldLand_Contracts/
-├── token_contracts/
-│   ├── contracts/
-│   │   └── MyToken.sol              # [AUDIT TARGET] ERC20 Token
-│   ├── tests/
-│   │   └── MyToken_test.sol
-│   └── .deps/                       # OpenZeppelin v5.4.0
-│
-└── vesting_contracts/
-    ├── finance/
-    │   ├── VestingWallet.sol        # [AUDIT TARGET] Base vesting
-    │   └── VestingWalletCliff.sol   # [AUDIT TARGET] Cliff extension
-    ├── access/
-    │   └── Ownable.sol
-    ├── token/ERC20/
-    │   ├── IERC20.sol
-    │   └── utils/SafeERC20.sol
-    ├── utils/
-    │   ├── Address.sol
-    │   ├── Context.sol
-    │   ├── Errors.sol
-    │   └── math/SafeCast.sol
-    └── interfaces/
-        ├── IERC20.sol
-        ├── IERC165.sol
-        └── IERC1363.sol
-```
+### Audit Scope
+| File | Contract | Description |
+|------|----------|-------------|
+| `token_contracts/contracts/MyToken.sol` | `WorldLandNativeToken` | ERC20, 1B fixed supply |
 
----
-
-## Dependency Verification
-
-All dependencies have been verified against official OpenZeppelin GitHub releases:
-
-### Token Contract Dependencies (v5.4.0)
-
-| File | Status |
+### Dependencies (+ all related dependencies)
+| File | Source |
 |------|--------|
-| ERC20.sol | Verified |
-| IERC20.sol | Verified |
-| IERC20Metadata.sol | Verified |
-| draft-IERC6093.sol | Verified |
-| Context.sol | Verified |
+| `@openzeppelin/contracts/token/ERC20/ERC20.sol` | OZ v5.4.0 |
 
-### Vesting Contract Dependencies (v5.5.0 / v5.1.0)
+---
 
-| File | Status |
+## 2. Vesting Contracts (Finance)
+
+### Audit Scope
+
+**Custom Contracts**
+| File | Contract | Description |
+|------|----------|-------------|
+| `vesting_contracts/finance/VestingWalletStair.sol` | `VestingWalletStair` | Step/stair vesting with cliff |
+| `vesting_contracts/finance/WorldLandStairVesting.sol` | `WorldLandVesting` | WorldLand implementation |
+| `vesting_contracts/finance/RevocableStairVesting.sol` | `RevocableStairVesting` | + Revocation capability |
+
+**OpenZeppelin Base**
+| File | Source |
 |------|--------|
-| VestingWallet.sol | Verified (whitespace only diff) |
-| VestingWalletCliff.sol | Verified (whitespace only diff) |
-| Ownable.sol | Verified |
-| SafeERC20.sol | Verified |
-| Address.sol | Verified |
-| Context.sol | Verified |
-| Errors.sol | Verified |
-| SafeCast.sol | Verified (comment grammar only diff) |
+| `vesting_contracts/finance/VestingWallet.sol` | OZ v5.5.0 |
+| `vesting_contracts/finance/VestingWalletCliff.sol` | OZ v5.1.0 |
+
+### Dependencies (+ all related dependencies)
+| File | Source |
+|------|--------|
+| `Ownable.sol` | OZ v5.0.0 |
+| `SafeERC20.sol` | OZ v5.5.0 |
+| `Address.sol` | OZ v5.5.0 |
+| `LowLevelCall.sol` | OZ v5.5.0 |
+| `SafeCast.sol` | OZ v5.0.0 |
+| `Context.sol`, `Errors.sol` | OZ v5.x |
+
+### Architecture
+```
+Ownable (OZ)
+    └── VestingWallet (OZ)
+            ├── VestingWalletCliff (OZ)
+            └── VestingWalletStair (Custom)
+                    ├── WorldLandVesting (Custom)
+                    └── RevocableStairVesting (Custom)
+```
 
 ---
 
-## Deployment Parameters
+## Deployment
 
-### Token Contract
-```solidity
-constructor(address foundation_wallet)
-```
-- `foundation_wallet`: Address to receive initial 1B token supply
-
-### VestingWallet
-```solidity
-constructor(address beneficiary, uint64 startTimestamp, uint64 durationSeconds)
-```
-- `beneficiary`: Address that will receive vested tokens
-- `startTimestamp`: Unix timestamp when vesting begins
-- `durationSeconds`: Total vesting duration in seconds
-
-### VestingWalletCliff (extends VestingWallet)
-```solidity
-constructor(uint64 cliffSeconds)
-```
-- `cliffSeconds`: Duration before any tokens become releasable
-
----
-
-## Build & Test
-
-### Using Remix IDE
-1. Open Remix IDE (https://remix.ethereum.org)
-2. Import contracts from this repository
-3. Compile with Solidity 0.8.27+
-4. Deploy to desired network
-
-### Compiler Settings
-- Solidity Version: 0.8.27
-- EVM Version: Paris (or later)
-- Optimizer: Enabled (200 runs recommended)
-
----
-
-## Security Considerations
-
-### Token Contract
-- Fixed supply (no mint function exposed)
-- No burn function exposed
-- No pause mechanism
-- No admin/owner privileges
-- Standard ERC20 implementation
-
-### Vesting Contract
-- Ownable pattern for beneficiary management
-- Linear vesting schedule
-- Optional cliff period
-- Supports both native ETH and ERC20 tokens
+| Setting | Value |
+|---------|-------|
+| Network | BSC Mainnet |
+| Compiler | 0.8.27 |
 
 ---
 
 ## License
 
-MIT License (OpenZeppelin Contracts)
+MIT
