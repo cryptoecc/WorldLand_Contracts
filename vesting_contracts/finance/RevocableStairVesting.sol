@@ -110,9 +110,10 @@ contract RevocableStairVesting is VestingWalletStair {
 
         uint256 balance = address(this).balance;
         uint256 returnable = balance - releasable();
-        Address.sendValue(payable(_treasury), returnable);
         _returned += returnable;
         emit Revoked(returnable);
+
+        Address.sendValue(payable(_treasury), returnable);
     }
 
     /**
@@ -132,9 +133,10 @@ contract RevocableStairVesting is VestingWalletStair {
 
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 returnable = balance - releasable(token);
-        SafeERC20.safeTransfer(IERC20(token), _treasury, returnable);
         _erc20Returned[token] += returnable;
         emit RevokedERC20(token, returnable);
+
+        SafeERC20.safeTransfer(IERC20(token), _treasury, returnable);
     }
 
     /**
