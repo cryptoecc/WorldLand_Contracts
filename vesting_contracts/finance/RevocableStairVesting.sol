@@ -165,7 +165,7 @@ contract RevocableStairVesting is VestingWalletStair {
      */
     function vestedAmount(address token, uint64 timestamp) public view override returns (uint256) {
 
-        uint256 totalAllocation = IERC20(token).balanceOf(address(this)) + super.released(token) + _erc20Returned[token];
+        uint256 totalAllocation = IERC20(token).balanceOf(address(this)) + released(token) + _erc20Returned[token];
 
         uint64 timeCap = timestamp;
         if (_revocationTimestamps[token] != 0 && _revocationTimestamps[token] < timestamp) {
