@@ -68,6 +68,10 @@ contract RevocableStairVesting is VestingWalletStair {
         VestingWalletStair(cliffSeconds, stepDuration, numberOfSteps)
         payable
     {
+
+        require(revokerAddress != address(0), "Revoker cannot be zero address");
+        require(treasuryAddress != address(0), "Treasury cannot be zero address");
+
         _revoker = revokerAddress;
         _treasury = treasuryAddress;
     }

@@ -63,7 +63,7 @@ abstract contract VestingWalletStair is VestingWallet {
         }
 
         // Cliff + all steps must fit within total duration
-        if (cliffSeconds + (stepDuration * numberOfSteps) > durationSec) {
+        if (cliffSeconds + (stepDuration * (numberOfSteps - 1)) > durationSec) {
             revert InvalidStepConfiguration(stepDuration, numberOfSteps, durationSec);
         }
 
